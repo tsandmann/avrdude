@@ -56,6 +56,10 @@
 #include <string.h>
 #include <math.h>
 
+
+//#define SPIDEV_UNEXPORT_RESET
+
+
 /**
  * Data for the programmer
  */
@@ -270,7 +274,6 @@ static int linuxspi_open(PROGRAMMER* pgm, char* port)
 static void linuxspi_close(PROGRAMMER* pgm)
 {
     IMPORT_PDATA(pgm);
-    char* buf;
 
     // Close SPI device
     if (pdata->port_fd >= 0)
@@ -279,6 +282,9 @@ static void linuxspi_close(PROGRAMMER* pgm)
         pdata->port_fd = -1;
     }
 
+#ifdef SPIDEV_UNEXPORT_RESET
+    char* buf;
+
     //set reset to input
     linuxspi_gpio_op_wr(pgm, LINUXSPI_GPIO_DIRECTION, pgm->pinno[PIN_AVR_RESET], "in");
     
@@ -286,6 +292,7 @@ static void linuxspi_close(PROGRAMMER* pgm)
     buf = malloc(32);
     sprintf(buf, "%d", pgm->pinno[PIN_AVR_RESET]);
     linuxspi_gpio_op_wr(pgm, LINUXSPI_GPIO_UNEXPORT, pgm->pinno[PIN_AVR_RESET], buf);
+#endif // SPIDEV_UNEXPORT_RESET
 }
 
 static void linuxspi_disable(PROGRAMMER* pgm)
